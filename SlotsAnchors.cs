@@ -15,6 +15,7 @@ public class SlotsAnchors : MonoBehaviour
     private void Awake()
     {
         spawnPoint = new Vector3(-3.5f, 1.25f, 0f);
+        
 
         anchors = new GameObject[SlotsAttributes.NumberOfRows(), SlotsAttributes.NumberOfReels()];
 

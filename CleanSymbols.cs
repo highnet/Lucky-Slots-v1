@@ -6,12 +6,14 @@ public class CleanSymbols : StateMachineBehaviour
 {
     private SymbolCleaner symbolCleaner;
     private WinningsAnimator winningsAnimator;
+    private PayoutVisualizer payoutVisualizer;
 
 
     private void Awake()
     {
         symbolCleaner = GameObject.FindGameObjectWithTag("Symbol Cleaner").GetComponent<SymbolCleaner>();
         winningsAnimator = GameObject.FindGameObjectWithTag("Winnings Animator").GetComponent<WinningsAnimator>();
+        payoutVisualizer = GameObject.FindGameObjectWithTag("Payout Visualizer").GetComponent<PayoutVisualizer>();
 
     }
     // OnStateEnter is called when a transition starts and the state machine starts to evaluate this state
@@ -19,6 +21,7 @@ public class CleanSymbols : StateMachineBehaviour
     {
         symbolCleaner.CleanSymbols();
         winningsAnimator.ResetPaylines();
+        payoutVisualizer.ResetSymbols();
     }
 
     // OnStateUpdate is called on each Update frame between OnStateEnter and OnStateExit callbacks

@@ -9,7 +9,7 @@ public class PayoutCalculator : MonoBehaviour
     private GameStateManager gameStateManager;
     private ActiveGameSymbols activeGameSymbols;
     private PaylineSpawner paylineSpawner;
-    private List<string> tally;
+    private List<string> payoutTally;
     private WinningsAnimator winningsAnimator;
 
     private void Awake()
@@ -19,19 +19,44 @@ public class PayoutCalculator : MonoBehaviour
         activeGameSymbols = GameObject.FindGameObjectWithTag("Active Game Symbols").GetComponent<ActiveGameSymbols>();
         paylineSpawner = GameObject.FindGameObjectWithTag("Payline Spawner").GetComponent<PaylineSpawner>();
         winningsAnimator = GameObject.FindGameObjectWithTag("Winnings Animator").GetComponent<WinningsAnimator>();
-        tally = new List<string>();
+        payoutTally = new List<string>();
+    }
+
+    public List<string> GetPayoutTally()
+    {
+        return payoutTally;
     }
 
     public void CalculatePayout()
     {
         Debug.Log("CALCULATING PAYOUT");
+        payoutTally = new List<string>();
+
+        CalculatePaylinesOfSize3();
+        CalculatePaylinesOfSize4and5();
+        TallyRemainingPaylines();
+
+        if (payoutTally.Count == 0)
+        {
+            gameStateManager.SetTrigger("Calculated Payout(=0)");
+        }
+        else
+        {
+            gameStateManager.SetTrigger("Calculated Payout(>0)");
+        }
+
+
+    }
+
+    public void CalculatePaylinesOfSize3()
+    {
         GameObject[,] symbols = activeGameSymbols.GetActiveGameSymbols();
 
+        // check check all paylines
 
         List<GameObject> paylines = paylineSpawner.GetPayLines();
-        bool hasWinner = false;
 
-        for (int paylineID = 0; paylineID < paylineSpawner.PayLinesCount() ; paylineID++)
+        for (int paylineID = 0; paylineID < paylineSpawner.PayLinesCount(); paylineID++)
         {
             int matchedLength = 1;
             Payline payline = paylines[paylineID].GetComponent<Payline>();
@@ -47,7 +72,8 @@ public class PayoutCalculator : MonoBehaviour
             {
                 Debug.Log("Found bonus, skipping payline check");
                 continue;
-            } else if (paylineSymbol == Symbol.Wild)
+            }
+            else if (paylineSymbol == Symbol.Wild)
             {
                 paylineCopyNextSymbol = true;
             }
@@ -82,31 +108,13 @@ public class PayoutCalculator : MonoBehaviour
                 if (matchedLength == payline.GetPayLineLength())
                 {
                     payline.FlagAsWinner();
-                    if (!hasWinner)
-                    {
-                        hasWinner = true;
-                    }
                     payline.SetWinningSymbol(paylineSymbol);
                 }
             }
         }
-        tally = new List<string>();
-        CalculatePaylinesOf4And5();
-        TallyPaylines();
-
-        if (!hasWinner)
-        {
-            gameStateManager.SetTrigger("Calculated Payout(=0)");
-        }
-        else
-        {
-            gameStateManager.SetTrigger("Calculated Payout(>0)");
-        }
-
-
     }
 
-    public void TallyPaylines()
+    public void TallyRemainingPaylines()
     {
         Debug.Log("Tallying Paylines");
 
@@ -124,23 +132,33 @@ public class PayoutCalculator : MonoBehaviour
         {
             Payline payline = winningPaylines[0];
             winningPaylines.RemoveAt(0);
-            if (!tally.Contains("4 " + payline.GetWinningSymbol().ToString()) &&
-                !tally.Contains("5 " + payline.GetWinningSymbol().ToString()) &&
-                !tally.Contains("3 " + payline.GetWinningSymbol().ToString())){
-                tally.Add(3 + " " + payline.GetWinningSymbol().ToString());
+            if (!payoutTally.Contains("4 " + payline.GetWinningSymbol().ToString()) &&
+                !payoutTally.Contains("5 " + payline.GetWinningSymbol().ToString()) &&
+                !payoutTally.Contains("3 " + payline.GetWinningSymbol().ToString())){
+                payoutTally.Add(3 + " " + payline.GetWinningSymbol().ToString());
                 winningsAnimator.AddToWinningSymbolCoordinates(payline.GetPath());
                 
             }
+
+
         }
 
-        for (int i = 0; i < tally.Count; i++)
+        for (int i = 0; i < Enum.GetNames(typeof(Symbol)).Length; i++)
         {
-            Debug.Log(tally[i]);
+            if (payoutTally.Contains("4 " + Enum.GetNames(typeof(Symbol)).GetValue(i)) && payoutTally.Contains("5 " + Enum.GetNames(typeof(Symbol)).GetValue(i)))
+            {
+                payoutTally.Remove("4 " + Enum.GetNames(typeof(Symbol)).GetValue(i));
+            }
+        }
+
+        for (int i = 0; i < payoutTally.Count; i++)
+        {
+            Debug.Log(payoutTally[i]);
         }
     }
 
 
-    public void CalculatePaylinesOf4And5()
+    public void CalculatePaylinesOfSize4and5()
     {
         Debug.Log("Merging Winning Payline Combinations");
         List<Payline> winningPaylines = new List<Payline>();
@@ -163,7 +181,7 @@ public class PayoutCalculator : MonoBehaviour
             for (int i = 0; i < winningPaylines.Count; i++)
             {
                 Payline otherPayline = winningPaylines[i];
-                if (payline.GetWinningSymbol() == otherPayline.GetWinningSymbol())
+                if (payline.GetWinningSymbol() == otherPayline.GetWinningSymbol() || otherPayline.GetWinningSymbol() == Symbol.Wild)
                 {
                     Debug.Log(payline.GetPaylineID() + "(" + payline.GetWinningSymbol() + ")" + "-> " + winningPaylines[i].GetPaylineID() + "(" + winningPaylines[i].GetWinningSymbol() + ")");
 
@@ -199,6 +217,7 @@ public class PayoutCalculator : MonoBehaviour
             {
                 for (int j = 0; j < 3; j++)
                 {
+                    Debug.Log("Current First Vertex ->" + firstVertex);
                     Vector2 vertex = clusteredPayLines[i].GetPath()[j];
                     Debug.Log("Clustered Vertex-> " + vertex);
 
@@ -254,7 +273,7 @@ public class PayoutCalculator : MonoBehaviour
                 specialPayline.FlagAsWinner();
                 paylineSpawner.AddToSpecialPaylines(specialPaylineGO);
 
-                tally.Add(specialPaylinePath.Count.ToString() + " " + payline.GetWinningSymbol().ToString());
+                payoutTally.Add(specialPaylinePath.Count.ToString() + " " + payline.GetWinningSymbol().ToString());
                 winningsAnimator.AddToWinningSymbolCoordinates(specialPaylinePath);
 
                 for (int i = 0; i < clusteredPayLines.Count; i++)
@@ -262,7 +281,7 @@ public class PayoutCalculator : MonoBehaviour
                     winningPaylines.Remove(clusteredPayLines[i]);
                     clusteredPayLines[i].ResetWinner();
                 }
-
+               
             }
             else if (specialPaylinePath.Count == 3 && clusteredPayLines.Count > 1)
             {

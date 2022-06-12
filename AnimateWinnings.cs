@@ -7,15 +7,18 @@ public class AnimateWinnings : StateMachineBehaviour
     // OnStateEnter is called when a transition starts and the state machine starts to evaluate this state
 
     private WinningsAnimator winningsAnimator;
+    private PayoutVisualizer payoutVisualizer;
 
     private void Awake()
     {
         winningsAnimator = GameObject.FindGameObjectWithTag("Winnings Animator").GetComponent<WinningsAnimator>();
+        payoutVisualizer = GameObject.FindGameObjectWithTag("Payout Visualizer").GetComponent<PayoutVisualizer>();
     }
     override public void OnStateEnter(Animator animator, AnimatorStateInfo stateInfo, int layerIndex)
     {
         winningsAnimator.RenderAllPaylines();
         winningsAnimator.AnimateWinningSymbols();
+        payoutVisualizer.VisualizePayout();
     }
 
     // OnStateUpdate is called on each Update frame between OnStateEnter and OnStateExit callbacks
