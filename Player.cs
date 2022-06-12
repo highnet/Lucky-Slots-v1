@@ -20,6 +20,8 @@ public class Player : MonoBehaviour
 
     internal void AwardBalance(float winnings)
     {
+        Debug.Log("Awarding Balance");
+        Debug.Log("Winnings: " + winnings);
         balance += winnings;
         uiManager.UpdateBalanceText();
     }

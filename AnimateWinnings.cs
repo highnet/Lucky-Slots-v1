@@ -2,23 +2,20 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class CleanSymbols : StateMachineBehaviour
+public class AnimateWinnings : StateMachineBehaviour
 {
-    private SymbolCleaner symbolCleaner;
-    private WinningsAnimator winningsAnimator;
+    // OnStateEnter is called when a transition starts and the state machine starts to evaluate this state
 
+    private WinningsAnimator winningsAnimator;
 
     private void Awake()
     {
-        symbolCleaner = GameObject.FindGameObjectWithTag("Symbol Cleaner").GetComponent<SymbolCleaner>();
         winningsAnimator = GameObject.FindGameObjectWithTag("Winnings Animator").GetComponent<WinningsAnimator>();
-
     }
-    // OnStateEnter is called when a transition starts and the state machine starts to evaluate this state
     override public void OnStateEnter(Animator animator, AnimatorStateInfo stateInfo, int layerIndex)
     {
-        symbolCleaner.CleanSymbols();
-        winningsAnimator.ResetPaylines();
+        winningsAnimator.RenderAllPaylines();
+        winningsAnimator.AnimateWinningSymbols();
     }
 
     // OnStateUpdate is called on each Update frame between OnStateEnter and OnStateExit callbacks

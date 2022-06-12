@@ -8,7 +8,7 @@ public enum Symbol { Wild, Ten, Jack, Queen, King, Ace, Bonus };
 public static class SlotsAttributes 
 {
     private const int numberOfReels = 5;
-    private const int numberOfRows = 4;
+    private const int numberOfRows = 3;
     private const int numberOfSymbols = 7;
     private const float verticalOffset = 2.0f;
     private const float horizontalOffset = 2.25f;
